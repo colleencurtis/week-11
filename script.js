@@ -1,161 +1,141 @@
-// LIST ARRAY IS WHERE OUR DATA FOR THIS APPLICATION LIVES
-var listArray = [
-  { name: "Books to Read",
+// master list array containing all our lists
+const data = [
+  { name: 'Books to Read',
     items: [
-      "Hitchhiker's Guide to Galaxy",
-      "Walden",
-      "The Elephant, the Tiger, and the Cell Phone"
+      "The Count of Monte Cristo",
+      "The Princess Bride",
+      "Fahrenheit 451"
     ]
-  }, 
-  { name: "Books Already Read",
-    items: [
-      "Harry Potter and the Goblet of Fire",
-      "Harry Potter and the Prisoner of Azkaban",
-      "Harry Potter and the Chamber of Secrets"
-    ]
-  }
-];
-
-var itemArray = [
-  { name: "Books to Read",
-    items: [
-      "Hitchhiker's Guide to Galaxy",
-      "Walden",
-      "The Elephant, the Tiger, and the Cell Phone"
-    ]
-  }, 
-  { name: "Books Already Read",
+  },
+  { name: "Books Read",
     items: [
       "Harry Potter and the Goblet of Fire",
       "Harry Potter and the Prisoner of Azkaban",
       "Harry Potter and the Chamber of Secrets"
     ]
+  },
+  { name: "Favorite Books",
+    items: [
+      "Pride and Prejudice",
+      "Harry Potter and the Philosopher's Stone",
+      "A Game of Thrones"
+    ]
   }
-  ];
-var selectedList = 0;
-var listDiv = document.getElementById("lists");
-var itemDiv = document.getElementById("list-items");
-var addListButton = document.getElementById("add-list-button");
-var addItemButton = document.getElementById("add-item-button");
+]
 
-// FUNCTIONS TO UPDATE THE HTML PAGE WITH RESPECT TO DATA
-function updateLists() {
-  while (listDiv.hasChildNodes()) {
-    listDiv.removeChild(listDiv.lastChild);
+// create a state object
+const state = { selectedList: 0 }
+
+// save references to all of our ui components
+const ui = {
+  lists: document.querySelector('#lists'),
+  items: document.querySelector('#list-items'),
+  popups: document.querySelectorAll('.popup'),
+  btn: {
+    addList: document.querySelector('#add-list-button'),
+    addItem: document.querySelector('#add-item-button'),
+    popup: document.querySelectorAll('.popup-button'),
+    close: document.querySelectorAll('.close')
   }
-
- // var list = listArray[0]; 
-
-  function addHTMLForList(list, i) {
-  var aElement = document.createElement("a");
-  aElement.classList.add("list-group-item");
-  aElement.classList.add("list-group-item-action");
-
-  aElement.setAttribute("data-index", i);
-
-  var textNode = document.createTextNode(list.name);
-  aElement.appendChild(textNode);
-
-  console.log(aElement);
-
-  listDiv.appendChild(aElement);
-  }
-
-  listArray.forEach(addHTMLForList);
-
 }
 
-function updateItems() {
-  while (itemDiv.hasChildNodes()) {
-    itemDiv.removeChild(itemDiv.lastChild);
-  }
+// initialize the app with these functions
+updateLists()
+updateUI()
+updateItems()
 
- // var list = listArray[0]; 
+// add events
+ui.btn.addList.addEventListener('click', addList)
+ui.btn.addItem.addEventListener('click', addItem)
+ui.lists.addEventListener('click', selectList)
+ui.btn.popup.forEach(btn => btn.addEventListener('click', openPopups))
+ui.btn.close.forEach(btn => btn.addEventListener('click', closePopups))
 
-  function addHTMLForItem(list, i) {
-  var aElement = document.createElement("a");
-  aElement.classList.add("list-group-item");
-  aElement.classList.add("list-group-item-action");
-
-  aElement.setAttribute("data-index", i);
-
-  var textNode = document.createTextNode(list.name);
-  aElement.appendChild(textNode);
-
-  console.log(aElement);
-
-  itemDiv.appendChild(aElement);
-  }
-
-  itemArray.forEach(addHTMLForItem);
-
+// event handlers
+function openPopups () {
+  const popup = document.getElementById(this.dataset.popupid)
+  popup.style.display = 'flex'
+  popup.querySelector('input[type="text"]').focus()
 }
 
-function updateItems() {
-  while (itemDiv.hasChildNodes()) {
-    itemDiv.removeChild(itemDiv.lastChild);
-  }
-
-  var listItemArray = listArray[selectedList].items;
-  listItemArray.forEach(function(item, i) {
-    // HOMEWORK
-    // Populate the list-items div (the right div) wit respective list items
-    // - make a new 'a' element
-    // - add classes to its classList
-    // - set value of 'data-index' attribute to i
-    // - Create a textNode with item name
-    // - append textNode to the 'a' element
-    // - append 'a' element to the itemDiv
-  });
+function closePopups () {
+  ui.popups.forEach(popup => {
+    popup.style.display = 'none'
+  })
 }
-updateLists();
 
-// ADDING TO LIST
-addListButton.addEventListener("click", function(e) {
-  e.preventDefault();
-  
-  var input = document["add-list-form"]["list-name-input"];
-  var newListName = input.value;
-
-  if (newListName.length > 2) {
-    //create list
-    var list = { name: newListName, items: [] };
-    //add list to array
-    listArray.push(list);
-    //update HTML
-    updateLists();
-    //clear input
-    document["add-list-form"].reset();
-    //close the popup
-    closePopups();
+function addList (e) {
+  e.preventDefault()
+  const form = document['add-list-form']
+  const val = form['list-name-input'].value
+  if ( val.trim().length === 0 || val.length < 2 ) {
+    alert('Make sure the name of the list is greater than 2 characters!')
+    form.reset()
+    return
   } else {
-    alert("List name invalid")
+    data.push({ name: val, items: [] })
+    form.reset()
+    closePopups()
+    updateLists()
   }
-});
+}
 
-// ADDING TO LIST ITEMS
+function addItem (e) {
+  e.preventDefault()
+  const form = document['add-item-form']
+  const val = form['item-name-input'].value
+  if ( val.trim().length === 0 || val.length < 2 ) {
+    alert('Make sure the name of the item is greater than 2 characters!')
+    form.reset()
+    return
+  } else {
+    data[state.selectedList].items.push(val)
+    form.reset()
+    closePopups()
+    updateItems()
+  }
+}
 
-// POP-UP HANDLING CODE
-var buttonsArray = document.querySelectorAll(".popup-button");
-// querySelectorAll returns a DOMTokenList and not an Array (which includes methods like forEach)
-buttonsArray = Array.from(buttonsArray); // Conevrting DOMTokenList to an Array
+function selectList (e) {
+  const target = e.target
+  state.selectedList = target.dataset.index
 
-buttonsArray.forEach(function(button) {
-  button.addEventListener("click", function() {
-    var popup = document.getElementById(this.dataset.popupid);
-    // The data attributes can be accessed by .dataset variable which is part of the DOMElement (check HTML for buttonsArray)
-    popup.style.display = "flex";
-  });
-});
+  updateUI()
+  updateItems()
+}
 
-var closeButton = document.querySelectorAll(".close");
-closeButton.forEach(function(button, i) {
-  button.addEventListener("click", closePopups);
-});
+// methods
+function updateUI() {
+  Array.from(lists.children)
+    .forEach(el => el.classList.remove('active'))
 
-function closePopups() {
-  var popupsArray = Array.from(document.querySelectorAll(".popup"));
-  popupsArray.forEach(function(popup) {
-    popup.style.display = "none";
-  });
+  lists.querySelector(`[data-index='${state.selectedList}']`)
+    .classList.add('active')
+}
+
+function updateLists () {
+  let i = 0;
+  ui.lists.innerHTML = data.map(list => `
+    <a class='list-group-item list-group-item-action' data-index='${i++}'>
+      ${list.name}
+    </a>`)
+    .join('')
+
+  updateUI()
+}
+
+function updateItems () {
+  const selectedList = data[state.selectedList]
+
+  if (selectedList.items.length === 0) {
+    ui.items.innerHTML = `<p class="text-muted" style="padding-bottom: 10px;">There are 0 items in "${selectedList.name}"</p>`
+    return
+  }
+
+  ui.items.innerHTML = selectedList.items.map(item => `
+    <a class='list-group-item list-group-item-action'>
+      ${item}
+    </a>
+  `)
+  .join('')
 }
